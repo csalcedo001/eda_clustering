@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <filesystem>
 
 #define cimg_use_jpeg
 #include "CImg.h"
@@ -31,23 +32,25 @@ double distance(vector<double> v1, vector<double> v2) {
 	return total;
 }
 
-vector<vector<double> > get_vectors() {
+vector<vector<double> > get_vectors(string directory_name) {
 	vector<vector<double> > points;
 
-	CImg<double> A("data/example1.jpg");
-	A.resize(384, 288);
-	vector<double> vA = vectorize(A);
-	points.push_back(vA);
-	
-	CImg<double> B("data/example2.jpg");
-	B.resize(384, 288);
-	vector<double> vB = vectorize(B);
-	points.push_back(vB);
-	
-	CImg<double> C("data/example3.jpg");
-	C.resize(384, 288);
-	vector<double> vC = vectorize(C);
-	points.push_back(vC);
+	for (const auto& entry : filesystem::directory_iterator(directory_name)) {
+	string entry_path = directory_name;
+	entry_path.append("/");
+	entry_path.append(entry.path().filename().string());
+
+		if (entry.is_regular_file() && entry_path.compare(entry_path.length() - 3, 3, "jpg") == 0) {
+			CImg<double> A(entry_path.c_str());
+			A.resize(384, 288);
+			vector<double> vA = vectorize(A);
+			points.push_back(vA);
+		}
+		else if (entry.is_directory()) {
+			auto nested = get_vectors(entry_path);
+			points.insert(points.end(), nested.begin(), nested.end());
+		}
+	}
 
 	return points;
 }
@@ -60,19 +63,25 @@ struct GraphEdge {
 
 struct CompareGraphEdge {
 	bool operator()(GraphEdge &e1, GraphEdge &e2) {
-		return e1.distance < e2.distance;
+		return e1.distance > e2.distance;
 	}
 };
 
 int main() {
-	vector<vector<double> > points = get_vectors();
+	vector<vector<double> > points = get_vectors("data/faces94/female/");
 
 	int n = points.size();
 	int k = 2; // Number of clusters
 
+	cout << "Number of points: " << n << endl;
+	cout << "Number of clusters: " << n << endl;
+
 	priority_queue<GraphEdge, vector<GraphEdge>, CompareGraphEdge> edges;
 
 	for (int i = 0; i < points.size(); i++) {
+		if (i % 100 == 0) 
+			cout << "iteration: " << i << endl;
+
 		for (int j = i + 1; j < points.size(); j++) {
 			GraphEdge g;
 
@@ -84,12 +93,14 @@ int main() {
 		}
 	}
 
-	while (edges.size() > n - k) edges.pop();
+	vector<GraphEdge> final_edges;
 
-	while (edges.size() > 0) {
+	while (edges.size() > n - k) {
 		auto e = edges.top();
 
 		cout << e.distance << endl;
+
+		final_edges.push_back(e);
 
 		edges.pop();
 	}
