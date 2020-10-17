@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -L/opt/X11/lib -I /opt/X11/include -I include -o $@
+CXXFLAGS = -std=c++17 -L/opt/X11/lib -I /opt/X11/include -I include -I include/fibonacci_heap/ -o $@
 TARGET = bin/main
 DIRS = bin build
 CXXLINK = -lX11 -ljpeg -lpng -lz

@@ -6,6 +6,8 @@
 #define cimg_use_jpeg
 #include "CImg.h"
 
+#include "fibonacci_heap.h"
+
 using namespace cimg_library;
 using namespace std;
 
@@ -59,13 +61,20 @@ struct GraphEdge {
 	vector<double> v1;
 	vector<double> v2;
 	double distance;
-};
 
-struct CompareGraphEdge {
-	bool operator()(GraphEdge &e1, GraphEdge &e2) {
-		return e1.distance > e2.distance;
+	bool operator<(GraphEdge const &e) const {
+		return this->distance < e.distance;
+	}
+	bool operator>(GraphEdge const &e) const {
+		return this->distance > e.distance;
 	}
 };
+
+// struct CompareGraphEdge {
+// 	bool operator()(GraphEdge &e1, GraphEdge &e2) {
+// 		return e1.distance > e2.distance;
+// 	}
+// };
 
 int main() {
 	vector<vector<double> > points = get_vectors("data/faces94/female/");
@@ -76,7 +85,8 @@ int main() {
 	cout << "Number of points: " << n << endl;
 	cout << "Number of clusters: " << n << endl;
 
-	priority_queue<GraphEdge, vector<GraphEdge>, CompareGraphEdge> edges;
+	// priority_queue<GraphEdge, vector<GraphEdge>, CompareGraphEdge> edges;
+	Fibonacci_heap<GraphEdge> edges;
 
 	for (int i = 0; i < points.size(); i++) {
 		if (i % 100 == 0) 
@@ -89,20 +99,20 @@ int main() {
 			g.v2 = points[j];
 			g.distance = distance(g.v1, g.v2);
 
-			edges.push(g);
+			edges.Insert(new NodoB<GraphEdge>(g));
 		}
 	}
 
 	vector<GraphEdge> final_edges;
 
-	while (edges.size() > n - k) {
-		auto e = edges.top();
+	for (int i = 0; i < n - k; i++) {
+		auto e = edges.Get_Min();
 
 		cout << e.distance << endl;
 
 		final_edges.push_back(e);
 
-		edges.pop();
+		edges.Delete_Min();
 	}
 	
 	return 0;
