@@ -7,33 +7,45 @@
 using namespace cimg_library;
 using namespace std;
 
-vector<float> vectorize(CImg<float> &img)
-{
-	vector<float> result;
+vector<double> vectorize(CImg<double> &img) {
+	CImg<double> haar = img.haar(false, 3);
+	CImg<double> crop = haar.crop(0, 0, 27, 27);
+	
+	vector<double> result;
 
-	cimg_forXY(img, x, y) { 
-		result.push_back((img(x, y, 0) + img(x, y, 1) +  img(x, y, 2)) / 3);
+	cimg_forXY(crop, x, y) { 
+		result.push_back((crop(x, y, 0) + crop(x, y, 1) + crop(x, y, 2)) / 3);
 	}
 
 	return result;
 }
 
+double distance(vector<double> v1, vector<double> v2) {
+	double total = 0;
+
+	for (int i = 0; i < v1.size(); i++) {
+		total += (v1[i] - v2[i]) * (v1[i] - v2[i]);
+	}
+
+	return total;
+}
 
 int main() {
-	CImg<float> A("data/example.jpg");
+	CImg<double> A("data/example1.jpg");
+	CImg<double> B("data/example2.jpg");
+	CImg<double> C("data/example3.jpg");
 	
 	A.resize(384, 288);
+	B.resize(384, 288);
+	C.resize(384, 288);
 	
-	CImg<float> B = A.haar(false, 3);
-	CImg<float> C = B.crop(0, 0, 27, 27);
-	
-	vector v = vectorize(C);
+	vector<double> vA = vectorize(A);
+	vector<double> vB = vectorize(B);
+	vector<double> vC = vectorize(C);
 
-	cout << "Vector size: " << v.size() << endl;
-	
-	A.display();
+	cout << "A - B distance: " << distance(vA, vB) << endl;
+	cout << "A - C distance: " << distance(vA, vC) << endl;
+	cout << "B - C distance: " << distance(vB, vC) << endl;
 	
 	return 0;
 }
-
-
