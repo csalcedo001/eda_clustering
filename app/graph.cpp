@@ -8,6 +8,7 @@
 
 #include "fibonacci_heap.h"
 #include "graph/graph.h"
+#include "disjoint_set.hpp"
 
 using namespace cimg_library;
 using namespace std;
@@ -79,6 +80,9 @@ int main() {
         g_final.insertNode(nodo);
     }
     auto nodos = g.getNodes();
+
+	eda::disjoint_set::DisjointSet<GraphNode*> ds;
+
     for (int i = 0; i < nodos.size(); i++) {
         for (int j = i+1; j < nodos.size(); ++j) {
             double d = distance(nodos[i]->getVector(), nodos[j]->getVector());
@@ -86,16 +90,24 @@ int main() {
             g.insertEdge(edge);
             fh.Insert(new NodoB<GraphEdge*>(edge));
         }
+
+		ds.insert(nodos[i]);
     }
 
     vector<GraphEdge*> final_edges;
 
-    for (int i = 0; i < n - k; i++) {
+	cout << fh.getM_size() << endl;
+
+    for (int i = 0; i < n - k && fh.getM_size() > 0; ) {
         auto e = fh.Get_Min();
+
+		if (ds.same_set(e->getNode1(), e->getNode2())) continue;
+		ds.combine(e->getNode1(), e->getNode2());
 
         final_edges.push_back(e);
 
         fh.Delete_Min();
+		i++;
     }
 
 	cout << "graph {" << endl;
