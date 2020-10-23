@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <filesystem>
+#include <cmath>
 
 #define cimg_use_jpeg
 #include "CImg.h"
@@ -34,13 +35,15 @@ double distance(vector<double> v1, vector<double> v2) {
 	return total;
 }
 
+int k;
+
 vector<vector<double> > get_vectors(string directory_name, vector<string> &paths) {
 	vector<vector<double> > points;
 
 	for (const auto& entry : filesystem::directory_iterator(directory_name)) {
-	string entry_path = directory_name;
-	entry_path.append("/");
-	entry_path.append(entry.path().filename().string());
+		string entry_path = directory_name;
+		entry_path.append("/");
+		entry_path.append(entry.path().filename().string());
 
 		if (entry.is_regular_file() && entry_path.compare(entry_path.length() - 3, 3, "jpg") == 0) {
 			CImg<double> A(entry_path.c_str());
@@ -50,6 +53,7 @@ vector<vector<double> > get_vectors(string directory_name, vector<string> &paths
 			paths.push_back(entry_path);
 		}
 		else if (entry.is_directory()) {
+			k++;
 			auto nested = get_vectors(entry_path, paths);
 			points.insert(points.end(), nested.begin(), nested.end());
 		}
@@ -58,28 +62,13 @@ vector<vector<double> > get_vectors(string directory_name, vector<string> &paths
 	return points;
 }
 
-// struct GraphEdge {
-// 	vector<double> v1;
-// 	vector<double> v2;
-// 	double distance;
-// 
-// 	bool operator<(GraphEdge const &e) const {
-// 		return this->distance < e.distance;
-// 	}
-// 	bool operator>(GraphEdge const &e) const {
-// 		return this->distance > e.distance;
-// 	}
-// };
-
 int main() {
+	k = 0; // Number of clusters
+
     vector<string> paths;
 	vector<vector<double> > points = get_vectors("data/faces94/female/", paths);
 
 	int n = points.size();
-	int k = 2; // Number of clusters
-
-	cout << "Number of points: " << n << endl;
-	cout << "Number of clusters: " << n << endl;
 
 	Fibonacci_heap<GraphEdge*> fh;
     Graph g, g_final;
@@ -104,12 +93,18 @@ int main() {
     for (int i = 0; i < n - k; i++) {
         auto e = fh.Get_Min();
 
-        cout << e->getData() << endl;
-
         final_edges.push_back(e);
 
         fh.Delete_Min();
     }
+
+	cout << "graph {" << endl;
+
+	for (auto e : final_edges) {
+		cout << (long long) e->getNode1() << " -- " << (long long) e->getNode2() << " [len=" << (long long) sqrt(e->getData()) << "];" << endl;
+	}
+
+	cout << "}" << endl;
 
     return 0;
 }
