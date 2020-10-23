@@ -70,12 +70,6 @@ struct GraphEdge {
 	}
 };
 
-// struct CompareGraphEdge {
-// 	bool operator()(GraphEdge &e1, GraphEdge &e2) {
-// 		return e1.distance > e2.distance;
-// 	}
-// };
-
 int main() {
 	vector<vector<double> > points = get_vectors("data/faces94/female/");
 
