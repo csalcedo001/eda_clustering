@@ -46,7 +46,7 @@ Node *BaseFibonacciHeap<T, Node>::insert(T value) {
 template <typename T, typename Node>
 T BaseFibonacciHeap<T, Node>::get_min() {
 	// TODO: Throw error when size == 0 
-	if (this->size_ == 0) return -1;
+	if (this->size_ == 0) throw "Cannot retrieve value from empty heap.";
 
 	return this->min_->value_;
 }
@@ -54,7 +54,7 @@ T BaseFibonacciHeap<T, Node>::get_min() {
 template <typename T, typename Node>
 void BaseFibonacciHeap<T, Node>::delete_min() {
 	// TODO: Throw error if size is 0
-	if (this->size_ == 0) return;
+	if (this->size_ == 0) throw "Cannot delete from empty heap.";
 
 	this->size_--;
 

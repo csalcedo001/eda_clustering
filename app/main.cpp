@@ -34,7 +34,7 @@ double distance(vector<double> v1, vector<double> v2) {
 	return total;
 }
 
-vector<vector<double> > get_vectors(string directory_name, &vector<string> paths) {
+vector<vector<double> > get_vectors(string directory_name, vector<string> &paths) {
 	vector<vector<double> > points;
 
 	for (const auto& entry : filesystem::directory_iterator(directory_name)) {
@@ -50,7 +50,7 @@ vector<vector<double> > get_vectors(string directory_name, &vector<string> paths
 			paths.push_back(entry_path);
 		}
 		else if (entry.is_directory()) {
-			auto nested = get_vectors(entry_path);
+			auto nested = get_vectors(entry_path, paths);
 			points.insert(points.end(), nested.begin(), nested.end());
 		}
 	}
@@ -81,7 +81,7 @@ int main() {
 	cout << "Number of points: " << n << endl;
 	cout << "Number of clusters: " << n << endl;
 
-    eda::fibonacci_heap::FibonacciHeap<GraphEdge*> fh;
+	Fibonacci_heap<GraphEdge*> fh;
     Graph g, g_final;
 
     for (int i = 0; i < n; ++i) {
@@ -95,20 +95,20 @@ int main() {
             double d = distance(nodos[i]->getVector(), nodos[j]->getVector());
             auto edge = new GraphEdge(nodos[i], nodos[j], d);
             g.insertEdge(edge);
-            fh.insert(edge);
+            fh.Insert(new NodoB<GraphEdge*>(edge));
         }
     }
 
     vector<GraphEdge*> final_edges;
 
     for (int i = 0; i < n - k; i++) {
-        auto e = fh.get_min();
+        auto e = fh.Get_Min();
 
         cout << e->getData() << endl;
 
         final_edges.push_back(e);
 
-        fh.delete_min();
+        fh.Delete_Min();
     }
 
     return 0;
