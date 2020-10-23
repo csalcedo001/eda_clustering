@@ -1,12 +1,12 @@
 #include <iostream>
 #include <vector>
-#include <queue>
 #include <filesystem>
 
 #define cimg_use_jpeg
 #include "CImg.h"
 
 #include "fibonacci_heap.h"
+#include "graph/graph.h"
 
 using namespace cimg_library;
 using namespace std;
@@ -34,7 +34,7 @@ double distance(vector<double> v1, vector<double> v2) {
 	return total;
 }
 
-vector<vector<double> > get_vectors(string directory_name) {
+vector<vector<double> > get_vectors(string directory_name, &vector<string> paths) {
 	vector<vector<double> > points;
 
 	for (const auto& entry : filesystem::directory_iterator(directory_name)) {
@@ -47,6 +47,7 @@ vector<vector<double> > get_vectors(string directory_name) {
 			A.resize(384, 288);
 			vector<double> vA = vectorize(A);
 			points.push_back(vA);
+			paths.push_back(entry_path);
 		}
 		else if (entry.is_directory()) {
 			auto nested = get_vectors(entry_path);
@@ -57,21 +58,22 @@ vector<vector<double> > get_vectors(string directory_name) {
 	return points;
 }
 
-struct GraphEdge {
-	vector<double> v1;
-	vector<double> v2;
-	double distance;
-
-	bool operator<(GraphEdge const &e) const {
-		return this->distance < e.distance;
-	}
-	bool operator>(GraphEdge const &e) const {
-		return this->distance > e.distance;
-	}
-};
+// struct GraphEdge {
+// 	vector<double> v1;
+// 	vector<double> v2;
+// 	double distance;
+// 
+// 	bool operator<(GraphEdge const &e) const {
+// 		return this->distance < e.distance;
+// 	}
+// 	bool operator>(GraphEdge const &e) const {
+// 		return this->distance > e.distance;
+// 	}
+// };
 
 int main() {
-	vector<vector<double> > points = get_vectors("data/faces94/female/");
+    vector<string> paths;
+	vector<vector<double> > points = get_vectors("data/faces94/female/", paths);
 
 	int n = points.size();
 	int k = 2; // Number of clusters
@@ -79,35 +81,35 @@ int main() {
 	cout << "Number of points: " << n << endl;
 	cout << "Number of clusters: " << n << endl;
 
-	// priority_queue<GraphEdge, vector<GraphEdge>, CompareGraphEdge> edges;
-	Fibonacci_heap<GraphEdge> edges;
+    eda::fibonacci_heap::FibonacciHeap<GraphEdge*> fh;
+    Graph g, g_final;
 
-	for (int i = 0; i < points.size(); i++) {
-		if (i % 100 == 0) 
-			cout << "iteration: " << i << endl;
+    for (int i = 0; i < n; ++i) {
+        auto nodo = new GraphNode(paths[i], points[i]);
+        g.insertNode(nodo);
+        g_final.insertNode(nodo);
+    }
+    auto nodos = g.getNodes();
+    for (int i = 0; i < nodos.size(); i++) {
+        for (int j = i+1; j < nodos.size(); ++j) {
+            double d = distance(nodos[i]->getVector(), nodos[j]->getVector());
+            auto edge = new GraphEdge(nodos[i], nodos[j], d);
+            g.insertEdge(edge);
+            fh.insert(edge);
+        }
+    }
 
-		for (int j = i + 1; j < points.size(); j++) {
-			GraphEdge g;
+    vector<GraphEdge*> final_edges;
 
-			g.v1 = points[i];
-			g.v2 = points[j];
-			g.distance = distance(g.v1, g.v2);
+    for (int i = 0; i < n - k; i++) {
+        auto e = fh.get_min();
 
-			edges.Insert(new NodoB<GraphEdge>(g));
-		}
-	}
+        cout << e->getData() << endl;
 
-	vector<GraphEdge> final_edges;
+        final_edges.push_back(e);
 
-	for (int i = 0; i < n - k; i++) {
-		auto e = edges.Get_Min();
+        fh.delete_min();
+    }
 
-		cout << e.distance << endl;
-
-		final_edges.push_back(e);
-
-		edges.Delete_Min();
-	}
-	
-	return 0;
+    return 0;
 }

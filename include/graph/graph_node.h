@@ -5,23 +5,23 @@
 #include <vector>
 using namespace std;
 
-class Node {
-  public:
-    Node(const string& path, vector<double> data){
+class GraphNode {
+public:
+    GraphNode(const string& path, vector<double> data){
         this->path = path;
-        this->data = std::move(data);
+        this->data = data;
     }
 
     string getPath(){
-      return path;
+        return path;
     }
-  
+
     vector<double> getVector(){
         return data;
     }
 
 
-  private:
+private:
     string path;
     vector<double> data;
 };

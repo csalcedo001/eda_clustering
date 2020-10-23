@@ -3,30 +3,37 @@
 
 #include "graph_node.h"
 
-class Edge {
+class GraphEdge {
 
-  public:
-    Node* nodes[2]{};
+public:
+    GraphNode* nodes[2]{};
 
-    Edge(Node* nodo1, Node* nodo2, double value):data(value){
-      nodes[0]=nodo1;
-      nodes[1]=nodo2;
+    GraphEdge(GraphNode* nodo1, GraphNode* nodo2, double value):data(value){
+        nodes[0]=nodo1;
+        nodes[1]=nodo2;
     };
 
     double getData() const{
-      return data;
+        return data;
     }
 
-    Node* getNode1() {
+    GraphNode* getNode1() {
         return nodes[0];
     }
 
-    Node* getNode2() {
+    GraphNode* getNode2() {
         return nodes[1];
     }
 
+    bool operator<(GraphEdge const &e) const {
+        return this->data < e.data;
+    }
+    bool operator>(GraphEdge const &e) const {
+        return this->data > e.data;
+    }
 
-  private:
+
+private:
     double data;
 };
 
