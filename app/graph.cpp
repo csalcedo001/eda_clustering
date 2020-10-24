@@ -65,7 +65,7 @@ vector<vector<double> > get_vectors(string directory_name, vector<string> &paths
 
 int main(int argc, char **argv) {
 	if (argc != 2) {
-		cout << "Usage: ./bin/graph <image directory>" << endl;
+		cout << "Usage:./bin/graph <directory>" << endl;
 		return 1;
 	}
 
