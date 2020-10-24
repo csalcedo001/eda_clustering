@@ -63,11 +63,18 @@ vector<vector<double> > get_vectors(string directory_name, vector<string> &paths
 	return points;
 }
 
-int main() {
+int main(int argc, char **argv) {
+	if (argc != 2) {
+		cout << "Usage: ./bin/graph <image directory>" << endl;
+		return 1;
+	}
+
+	string path(argv[1]);
+		
 	k = 0; // Number of clusters
 
     vector<string> paths;
-	vector<vector<double> > points = get_vectors("data/faces94/female/", paths);
+	vector<vector<double> > points = get_vectors(path, paths);
 
 	int n = points.size();
 
@@ -86,7 +93,7 @@ int main() {
     for (int i = 0; i < nodos.size(); i++) {
         for (int j = i+1; j < nodos.size(); ++j) {
             double d = distance(nodos[i]->getVector(), nodos[j]->getVector());
-            auto edge = new GraphEdge(nodos[i], nodos[j], d);
+            auto edge = new GraphEdge(nodos[i], nodos[j], log(d));
             g.insertEdge(edge);
             fh.Insert(new NodoB<GraphEdge>(*edge));
         }
