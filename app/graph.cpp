@@ -63,6 +63,22 @@ vector<vector<double> > get_vectors(string directory_name, vector<string> &paths
 	return points;
 }
 
+int label_start_pos(string label) {
+	for (int i = label.length() - 1; i >= 0; i--) {
+		if (label[i] == '/') return i + 1;
+	}
+
+	return 0;
+}
+
+int label_length(string label) {
+	for (int i = label_start_pos(label); i < label.length(); i++) {
+		if (label[i] == '.') return i - 1;
+	}
+
+	return label.length() - 1;
+}
+
 int main(int argc, char **argv) {
 	if (argc != 2) {
 		cout << "Usage:./bin/graph <directory>" << endl;
@@ -105,6 +121,15 @@ int main(int argc, char **argv) {
 
 	cout << "graph {" << endl;
 
+	for (auto nodo : nodos) {
+		string label = nodo->getPath();
+		int start_pos = label_start_pos(label);
+		int length = label_length(label);
+
+		// cout << (long long) nodo << " [label=\"" << label.substr(start_pos, length) << "\"];" << endl;
+		cout << (long long) nodo << " [image=\"" << label << "\", label=\"\"];" << endl;
+	}
+
     for (int i = 0; i < n - k && fh.getM_size() > 0; ) {
         auto e = fh.Get_Min();
         fh.Delete_Min();
@@ -112,7 +137,7 @@ int main(int argc, char **argv) {
 		if (ds.same_set(e.getNode1(), e.getNode2())) continue;
 		ds.combine(e.getNode1(), e.getNode2());
 
-		cout << (long long) e.getNode1() << " -- " << (long long) e.getNode2() << " [len=" << (long long) e.getData() << "];" << endl;
+		cout << (long long) e.getNode1() << " -- " << (long long) e.getNode2() << ";" << endl;
 
         final_edges.push_back(e);
 		i++;
