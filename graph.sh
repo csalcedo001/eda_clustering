@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ ! -f docs/graph.in ]; then
-	echo "Input file docs/graph.in not found"
+if [ ! -d $1 ]; then
+	echo "Usage: ./graph.sh <directory>"
 else
-	./bin/graph < docs/graph.in | fdp -Tpdf -o docs/graph.pdf
+	./bin/graph $1 | fdp -Tpdf -o docs/graph.pdf
 fi
