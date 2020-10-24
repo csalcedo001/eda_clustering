@@ -33,7 +33,7 @@ double distance(vector<double> v1, vector<double> v2) {
 		total += (v1[i] - v2[i]) * (v1[i] - v2[i]);
 	}
 
-	return total;
+	return sqrt(total);
 }
 
 int k;
@@ -71,7 +71,7 @@ int main() {
 
 	int n = points.size();
 
-	Fibonacci_heap<GraphEdge*> fh;
+	Fibonacci_heap<GraphEdge> fh;
     Graph g, g_final;
 
     for (int i = 0; i < n; ++i) {
@@ -88,35 +88,38 @@ int main() {
             double d = distance(nodos[i]->getVector(), nodos[j]->getVector());
             auto edge = new GraphEdge(nodos[i], nodos[j], d);
             g.insertEdge(edge);
-            fh.Insert(new NodoB<GraphEdge*>(edge));
+            fh.Insert(new NodoB<GraphEdge>(*edge));
         }
 
 		ds.insert(nodos[i]);
     }
 
-    vector<GraphEdge*> final_edges;
-
-	cout << fh.getM_size() << endl;
-
-    for (int i = 0; i < n - k && fh.getM_size() > 0; ) {
-        auto e = fh.Get_Min();
-
-		if (ds.same_set(e->getNode1(), e->getNode2())) continue;
-		ds.combine(e->getNode1(), e->getNode2());
-
-        final_edges.push_back(e);
-
-        fh.Delete_Min();
-		i++;
-    }
+    vector<GraphEdge> final_edges;
 
 	cout << "graph {" << endl;
 
-	for (auto e : final_edges) {
-		cout << (long long) e->getNode1() << " -- " << (long long) e->getNode2() << " [len=" << (long long) sqrt(e->getData()) << "];" << endl;
-	}
+    for (int i = 0; i < n - k && fh.getM_size() > 0; ) {
+        auto e = fh.Get_Min();
+        fh.Delete_Min();
+
+		if (ds.same_set(e.getNode1(), e.getNode2())) continue;
+		ds.combine(e.getNode1(), e.getNode2());
+
+		cout << (long long) e.getNode1() << " -- " << (long long) e.getNode2() << " [len=" << (long long) e.getData() << "];" << endl;
+
+        final_edges.push_back(e);
+		i++;
+    }
 
 	cout << "}" << endl;
+
+	// cout << "graph {" << endl;
+
+	// for (auto e : final_edges) {
+	// 	cout << (long long) e->getNode1() << " -- " << (long long) e->getNode2() << " [len=" << (long long) sqrt(e->getData()) << "];" << endl;
+	// }
+
+	// cout << "}" << endl;
 
     return 0;
 }

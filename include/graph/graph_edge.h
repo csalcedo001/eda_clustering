@@ -12,6 +12,11 @@ public:
         nodes[0]=nodo1;
         nodes[1]=nodo2;
     };
+    GraphEdge(const GraphEdge &edge){
+        nodes[0]=edge.nodes[0];
+        nodes[1]=edge.nodes[1];
+		data=edge.data;
+    };
 
     double getData() const{
         return data;
