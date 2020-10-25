@@ -2,6 +2,8 @@
 #include <vector>
 #include <filesystem>
 #include <cmath>
+#include <chrono>
+#include <random>
 
 #define cimg_use_jpeg
 #include "CImg.h"
@@ -13,8 +15,8 @@
 using namespace cimg_library;
 using namespace std;
 
-vector<double> vectorize(CImg<double> &img) {
-	CImg<double> haar = img.haar(false, 4);
+vector<double> vectorize(CImg<double> &img, int m) {
+	CImg<double> haar = img.haar(false, m);
 	CImg<double> crop = haar.crop(0, 0, 27, 27);
 	
 	vector<double> result;
@@ -30,15 +32,16 @@ double distance(vector<double> v1, vector<double> v2, double m = 2) {
 	double total = 0;
 
 	for (int i = 0; i < v1.size(); i++) {
-		total += (v1[i] - v2[i]) * (v1[i] - v2[i]);
+		total += pow(abs(v1[i] - v2[i]), m);
 	}
 
 	return pow(total, 1 / m);
 }
 
 int k;
+std::default_random_engine generator;
 
-vector<vector<double> > get_vectors(string directory_name, vector<string> &paths) {
+vector<vector<double> > get_vectors(string directory_name, vector<string> &paths, bool random = false, double m = 4) {
 	vector<vector<double> > points;
 
 	for (const auto& entry : filesystem::directory_iterator(directory_name)) {
@@ -49,7 +52,18 @@ vector<vector<double> > get_vectors(string directory_name, vector<string> &paths
 		if (entry.is_regular_file() && entry_path.compare(entry_path.length() - 3, 3, "jpg") == 0) {
 			CImg<double> A(entry_path.c_str());
 			A.resize(384, 288);
-			vector<double> vA = vectorize(A);
+
+			vector<double> vA;
+
+			if (!random) {
+				std::uniform_int_distribution<int> m_distribution(1, 4);
+				m = m_distribution(generator);
+				vA = vectorize(A, m);
+			}
+			else {
+				vA = vectorize(A, m);
+			}
+
 			points.push_back(vA);
 			paths.push_back(entry_path);
 		}
@@ -63,22 +77,6 @@ vector<vector<double> > get_vectors(string directory_name, vector<string> &paths
 	return points;
 }
 
-int label_start_pos(string label) {
-	for (int i = label.length() - 1; i >= 0; i--) {
-		if (label[i] == '/') return i + 1;
-	}
-
-	return 0;
-}
-
-int label_length(string label) {
-	for (int i = label_start_pos(label); i < label.length(); i++) {
-		if (label[i] == '.') return i - 1;
-	}
-
-	return label.length() - 1;
-}
-
 int main(int argc, char **argv) {
 	if (argc != 2) {
 		cout << "Usage:./bin/graph <directory>" << endl;
@@ -89,8 +87,13 @@ int main(int argc, char **argv) {
 		
 	k = 0; // Number of clusters
 
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine gen(seed);
+
+	generator = gen;
+
     vector<string> paths;
-	vector<vector<double> > points = get_vectors(path, paths);
+	vector<vector<double> > points = get_vectors(path, paths, true);
 
 	int n = points.size();
 
@@ -108,7 +111,7 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < nodos.size(); i++) {
         for (int j = i+1; j < nodos.size(); ++j) {
-            double d = distance(nodos[i]->getVector(), nodos[j]->getVector(), 3);
+            double d = distance(nodos[i]->getVector(), nodos[j]->getVector(), 2);
             auto edge = new GraphEdge(nodos[i], nodos[j], log(d));
             g.insertEdge(edge);
             fh.Insert(new NodoB<GraphEdge>(*edge));
@@ -117,17 +120,10 @@ int main(int argc, char **argv) {
 		ds.insert(nodos[i]);
     }
 
-    vector<GraphEdge> final_edges;
-
 	cout << "graph {" << endl;
 
 	for (auto nodo : nodos) {
-		string label = nodo->getPath();
-		int start_pos = label_start_pos(label);
-		int length = label_length(label);
-
-		// cout << (long long) nodo << " [label=\"" << label.substr(start_pos, length) << "\"];" << endl;
-		cout << (long long) nodo << " [image=\"" << label << "\", label=\"\"];" << endl;
+		cout << (long long) nodo << " [image=\"" << nodo->getPath() << "\", label=\"\"];" << endl;
 	}
 
     for (int i = 0; i < n - k && fh.getM_size() > 0; ) {
@@ -139,19 +135,10 @@ int main(int argc, char **argv) {
 
 		cout << (long long) e.getNode1() << " -- " << (long long) e.getNode2() << ";" << endl;
 
-        final_edges.push_back(e);
 		i++;
     }
 
 	cout << "}" << endl;
-
-	// cout << "graph {" << endl;
-
-	// for (auto e : final_edges) {
-	// 	cout << (long long) e->getNode1() << " -- " << (long long) e->getNode2() << " [len=" << (long long) sqrt(e->getData()) << "];" << endl;
-	// }
-
-	// cout << "}" << endl;
 
     return 0;
 }
