@@ -14,7 +14,7 @@ using namespace cimg_library;
 using namespace std;
 
 vector<double> vectorize(CImg<double> &img) {
-	CImg<double> haar = img.haar(false, 3);
+	CImg<double> haar = img.haar(false, 4);
 	CImg<double> crop = haar.crop(0, 0, 27, 27);
 	
 	vector<double> result;
@@ -26,14 +26,14 @@ vector<double> vectorize(CImg<double> &img) {
 	return result;
 }
 
-double distance(vector<double> v1, vector<double> v2) {
+double distance(vector<double> v1, vector<double> v2, double m = 2) {
 	double total = 0;
 
 	for (int i = 0; i < v1.size(); i++) {
 		total += (v1[i] - v2[i]) * (v1[i] - v2[i]);
 	}
 
-	return sqrt(total);
+	return pow(total, 1 / m);
 }
 
 int k;
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < nodos.size(); i++) {
         for (int j = i+1; j < nodos.size(); ++j) {
-            double d = distance(nodos[i]->getVector(), nodos[j]->getVector());
+            double d = distance(nodos[i]->getVector(), nodos[j]->getVector(), 3);
             auto edge = new GraphEdge(nodos[i], nodos[j], log(d));
             g.insertEdge(edge);
             fh.Insert(new NodoB<GraphEdge>(*edge));
